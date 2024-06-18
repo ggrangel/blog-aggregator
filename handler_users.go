@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,15 +34,10 @@ func (apiConfig *apiConfig) handlerUserCreate(w http.ResponseWriter, r *http.Req
 	respondWithJson(w, http.StatusOK, createUserParams)
 }
 
-func (apiConfig *apiConfig) handlerUserGetByApiKey(w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Authorization")
-	apiKey := strings.TrimPrefix(header, "ApiKey ")
-
-	user, err := apiConfig.Db.GetUserByApiKey(r.Context(), apiKey)
-	if err != nil {
-		respondWithError(w, http.StatusNotFound, "User not found")
-		return
-	}
-
-	respondWithJson(w, http.StatusOK, user)
+func (apiConfig *apiConfig) handlerUsersGet(
+	w http.ResponseWriter,
+	r *http.Request,
+	user database.User,
+) {
+	respondWithJson(w, http.StatusOK, databaseUserToUser(user))
 }

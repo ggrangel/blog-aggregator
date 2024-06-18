@@ -49,8 +49,11 @@ func main() {
 		respondWithError(w, 500, "Internal Server Error")
 	})
 
-	v1Router.HandleFunc("GET /users", apiConfig.handlerUserGetByApiKey)
+	v1Router.HandleFunc("GET /users", apiConfig.middlewareAuth(apiConfig.handlerUsersGet))
 	v1Router.HandleFunc("POST /users", apiConfig.handlerUserCreate)
+
+	v1Router.HandleFunc("POST /feeds", apiConfig.middlewareAuth(apiConfig.handlerFeedsCreate))
+	v1Router.HandleFunc("GET /feeds", apiConfig.handlerFeedsGet)
 
 	server := &http.Server{
 		Addr:    ":" + port,

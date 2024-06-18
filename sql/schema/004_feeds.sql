@@ -1,0 +1,11 @@
+-- +goose Up
+create TABLE feeds (
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  name TEXT NOT NULL,
+  url TEXT UNIQUE NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- +goose Down
+DROP TABLE feeds;
