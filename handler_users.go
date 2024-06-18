@@ -41,3 +41,21 @@ func (apiConfig *apiConfig) handlerUsersGet(
 ) {
 	respondWithJson(w, http.StatusOK, user)
 }
+
+func (apiConfig *apiConfig) handlerGetPostsForUser(
+	w http.ResponseWriter,
+	r *http.Request,
+	user User,
+) {
+	userId := uuid.NullUUID{UUID: user.ID, Valid: true}
+	posts, err := apiConfig.Db.GetPostsForUser(r.Context(), database.GetPostsForUserParams{
+		UserID: userId,
+		Limit:  10,
+	})
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal server error")
+	}
+
+	respondWithJson(w, http.StatusOK, databasePoststoPosts(posts))
+}

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
@@ -40,6 +41,8 @@ func main() {
 	dbQueries := database.New(db)
 	apiConfig := apiConfig{Db: dbQueries}
 
+	go startScraping(dbQueries, 10, time.Minute)
+
 	router := chi.NewRouter()
 	v1Router := chi.NewRouter()
 	router.Mount("/v1", v1Router)
@@ -65,6 +68,9 @@ func main() {
 	v1Router.HandleFunc(
 		"GET /feed_follows",
 		apiConfig.middlewareAuth(apiConfig.handlerGetFeedFollowsForUser),
+	)
+	v1Router.HandleFunc(
+		"GET /posts", apiConfig.middlewareAuth(apiConfig.handlerGetPostsForUser),
 	)
 
 	server := &http.Server{
