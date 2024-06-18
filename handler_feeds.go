@@ -14,7 +14,7 @@ import (
 func (cfg *apiConfig) handlerFeedsCreate(
 	w http.ResponseWriter,
 	r *http.Request,
-	user database.User,
+	user User,
 ) {
 	var request struct {
 		Name string `json:"name"`
@@ -25,11 +25,9 @@ func (cfg *apiConfig) handlerFeedsCreate(
 		respondWithError(w, http.StatusBadRequest, "Bad request")
 	}
 
-	userD := databaseUserToUser(user)
-
 	currentTimedate := sql.NullTime{Time: time.Now().UTC(), Valid: true}
 	userId := uuid.NullUUID{
-		UUID:  userD.ID,
+		UUID:  user.ID,
 		Valid: true,
 	}
 
@@ -48,7 +46,32 @@ func (cfg *apiConfig) handlerFeedsCreate(
 		return
 	}
 
-	respondWithJson(w, http.StatusOK, databaseFeedToFeed(feed))
+	feedId := uuid.NullUUID{
+		UUID:  feed.ID,
+		Valid: true,
+	}
+
+	feedFollow, err := cfg.Db.CreateFeedFollows(r.Context(), database.CreateFeedFollowsParams{
+		ID:        uuid.New(),
+		CreatedAt: currentTimedate,
+		UpdatedAt: currentTimedate,
+		UserID:    userId,
+		FeedID:    feedId,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create feed follow")
+		return
+	}
+
+	response := struct {
+		Feed       Feed       `json:"feed"`
+		FeedFollow FeedFollow `json:"feed_follow"`
+	}{
+		Feed:       databaseFeedToFeed(feed),
+		FeedFollow: databaseFeedFollowToFeedFollow(feedFollow),
+	}
+
+	respondWithJson(w, http.StatusOK, response)
 }
 
 func (cfg *apiConfig) handlerFeedsGet(w http.ResponseWriter, r *http.Request) {

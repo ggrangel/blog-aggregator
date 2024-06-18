@@ -1,0 +1,11 @@
+-- +goose Up
+CREATE TABLE follows (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    feed_id UUID REFERENCES feeds(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+);
+
+-- +goose Down
+DROP TABLE follows;

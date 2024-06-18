@@ -55,6 +55,18 @@ func main() {
 	v1Router.HandleFunc("POST /feeds", apiConfig.middlewareAuth(apiConfig.handlerFeedsCreate))
 	v1Router.HandleFunc("GET /feeds", apiConfig.handlerFeedsGet)
 
+	v1Router.HandleFunc(
+		"POST /feed_follows",
+		apiConfig.middlewareAuth(apiConfig.handlerFeedFollowsCreate),
+	)
+	v1Router.HandleFunc(
+		"DELETE /feed_follows/{id}",
+		apiConfig.handlerDeleteFeedFollows)
+	v1Router.HandleFunc(
+		"GET /feed_follows",
+		apiConfig.middlewareAuth(apiConfig.handlerGetFeedFollowsForUser),
+	)
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: router,

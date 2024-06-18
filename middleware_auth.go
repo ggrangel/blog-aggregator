@@ -4,10 +4,9 @@ import (
 	"net/http"
 
 	"github.com/ggrangel/blog-aggregator/internal/auth"
-	"github.com/ggrangel/blog-aggregator/internal/database"
 )
 
-type authedHandler func(http.ResponseWriter, *http.Request, database.User)
+type authedHandler func(http.ResponseWriter, *http.Request, User)
 
 func (cfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +21,6 @@ func (cfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 			return
 		}
 
-		handler(w, r, user)
+		handler(w, r, databaseUserToUser(user))
 	}
 }
