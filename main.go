@@ -1,20 +1,44 @@
 package main
 
+// Importing the SQL driver github.com/lib/pq
+// Underscore tells Go that we're importing it for its side effects
+
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+
+	"github.com/ggrangel/blog-aggregator/internal/database"
 )
 
+type apiConfig struct {
+	Db *database.Queries
+}
+
 func main() {
+
 	godotenv.Load(".env")
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("PORT must be set")
 	}
+	dbUrl := os.Getenv("DATABASE_URL")
+	if dbUrl == "" {
+		log.Fatal("DATABASE_URL must be set")
+	}
+
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbQueries := database.New(db)
+	apiConfig := apiConfig{Db: dbQueries}
 
 	router := chi.NewRouter()
 	v1Router := chi.NewRouter()
@@ -25,13 +49,16 @@ func main() {
 		respondWithError(w, 500, "Internal Server Error")
 	})
 
+	v1Router.HandleFunc("GET /users", apiConfig.handlerUserGetByApiKey)
+	v1Router.HandleFunc("POST /users", apiConfig.handlerUserCreate)
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: router,
 	}
 
 	log.Printf("Server listening on port %s", port)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
